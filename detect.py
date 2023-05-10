@@ -2,11 +2,13 @@ import numpy as np
 import cv2
 import time
 import os
+import imutils
 
-
-lower_bound = np.array([100, 50, 10])
-upper_bound = np.array([140, 255, 255])
+global lower_bound, upper_bound
+lower_bound = np.array([94, 80, 2])
+upper_bound = np.array([126, 255, 255])
 beg_time = time.perf_counter()
+start = False
 
 
 def set_red(*args):
@@ -118,10 +120,17 @@ if select == 1:
 		if len(contours) > 0:
 			contour = max(contours, key=cv2.contourArea)
 			x, y, w, h = cv2.boundingRect(contour)
-			file.write(f'{x}\t{y}\t{time.perf_counter() - beg_time}\n')
+			if start:
+				file.write(f'{x}\t{y}\t{time.perf_counter() - beg_time}\n')
 			imageFrame = cv2.rectangle(imageFrame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
 		cv2.imshow("Controls", imageFrame)
+
+		if cv2.waitKey(1) & 0xFF == ord('s'):
+			start = True
+			beg_time = time.perf_counter()
+			print("Recording started")
+
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			end_time = time.perf_counter()
 			cam.release()
@@ -131,12 +140,20 @@ if select == 1:
 if select == 2:
 	src = input("Enter video path:")
 	cap = cv2.VideoCapture(src)
+	col = input("Select color: red | gren | blue\n")
 
+	if col == "red":
+		set_green()
+	if col == "blue":
+		set_blue()
+	if col == "green":
+		set_green()
 
 	while (cap.isOpened()):
 
-		_, imageFrame = cap.read()
-
+		ret, imageFrame = cap.read()
+		if not ret:
+			break
 		hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV)
 		
 		mask = cv2.inRange(hsvFrame, lower_bound, upper_bound)
@@ -153,8 +170,10 @@ if select == 2:
 			x, y, w, h = cv2.boundingRect(contour)
 			file.write(f'{x}\t{y}\t{cap.get(cv2.CAP_PROP_POS_MSEC)/1000}\n')
 			imageFrame = cv2.rectangle(imageFrame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
+		
+		imageFrame = imutils.resize(imageFrame, height=400)
 		cv2.imshow("Controls", imageFrame)
+
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			end_time = time.perf_counter()
 			cap.release()
