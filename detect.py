@@ -377,7 +377,7 @@ if ask:
 
 
     cap.release()
-
+    file.write("dupa\n")
     file.close()
     cv2.destroyAllWindows()
 
@@ -551,6 +551,6 @@ else:
                 cam.release()
                 cv2.destroyAllWindows()
                 break
-
+    file.write("dupa\n")
     file.close()
     cv2.destroyAllWindows()
