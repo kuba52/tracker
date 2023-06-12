@@ -3,6 +3,7 @@
 #include <cmath>
 #include "structs.h"
 #include "points.h"
+#include <fstream>
 
 double fov;
 double distanceToPlane;
@@ -23,6 +24,10 @@ Point fromScreenToPlane(int x, int y){
 
 int main(int argc, char *argv[])
 {
+    std::ifstream inF;
+    std::ofstream outF;
+    inF.open("data.txt", std::ios::in);
+    outF.open("data2.txt", std::ios::out | std::ios::trunc);
         int x,y;
         Point p;
 
@@ -37,7 +42,7 @@ int main(int argc, char *argv[])
     // resolution[0]= 1280;
     // resolution[1] = 720
 
-    fov = std::numbers::pi/2;
+    fov = 0.68080883*2;
     if(argc >4)
         fov = std::stod(argv[4]);
     
@@ -46,13 +51,16 @@ int main(int argc, char *argv[])
 
     planeSize[0] = std::tan(fov/2)*distanceToPlane*2;
     planeSize[1] = planeSize[0]* (dd*resolution[1]/resolution[0]);
+     std::cerr<<"plane"<< planeSize[0]<<"\n";
 
     // std::cout<<planeSize[0]<<" "<<planeSize[1]<<"\n";
-    while (1)
+    double time;
+    while (!inF.eof())
     {
-        std::cin>>x>>y;
+        inF>>x>>y>>time;
         p = fromScreenToPlane(x,y);
-        std::cout<<p.x<<" "<<p.y<<"\n";
+        outF<<p.x<<" "<<p.y<<" "<<time<<"\n";
+        // outF<<x<<" "<<y<<" "<<time<<"\n";
     }
     
 }
