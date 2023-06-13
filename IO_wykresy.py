@@ -126,9 +126,9 @@ while(not end):
     v = np.concatenate((v, new_v))
     
     # Czy prędkości są stałe
-    if (vx_const):
+    if (vx_const and len(v_x) != 0):
         vx_const = np.max(v_x) - np.min(v_x) < ER
-    if (vy_const):
+    if (vy_const and len(v_y) != 0):
         vy_const = np.max(v_y) - np.min(v_y) < ER
     
     # kalkulacja przyspieszeń
@@ -139,11 +139,11 @@ while(not end):
     
     last_processed_index = new_last_processed_index
     # Czy przyspieszenia są stałe
-    if (ax_const):
+    if (ax_const and len(a_x) != 0):
         ax_const = np.max(a_x) - np.min(a_x) < ER
-    if (ay_const):
+    if (ay_const and len(a_y) != 0):
         ay_const = np.max(a_y) - np.min(a_y) < ER
-    if(a_const):
+    if(a_const and len(a) != 0):
         a_const = np.max(a) - np.min(a) < ER
     
     
