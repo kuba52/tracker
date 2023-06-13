@@ -58,29 +58,44 @@ int main(int argc, char *argv[])
     // std::cout<<planeSize[0]<<" "<<planeSize[1]<<"\n";
     double time;
     std::string str;
+
+    int last_line = 0;
+    int crr_line = 0;
     while (1)
     {
         // if (!inF.eof())
         // {
-        
+
         if (!inF.eof())
         {
             inF >> str;
-            if (str == "dupa"){
+            if (str == "dupa")
+            {
                 outF.close();
                 inF.close();
                 return 0;
             }
+
+            crr_line++;
             x = std::atoi(str.c_str());
             inF >> y >> time;
-            p = fromScreenToPlane(x, y);
-            outF << p.x << " " << p.y << " " << time << "\n";
+
+            if (crr_line > last_line)
+            {
+                last_line++;
+                p = fromScreenToPlane(x, y);
+                outF << p.x << " " << p.y << " " << time << "\n";
+            }
         }
-        else{
-            // inF.sync();
+        else
+        {
+            inF.close();
             outF.close();
-            return 1;
+            crr_line = 0;
+            inF.open("data.txt", std::ios::in);
+            outF.open("data2.txt", std::ios::out | std::ios::app);
         }
+
         // outF<<x<<" "<<y<<" "<<time<<"\n";
         // }
         // in
