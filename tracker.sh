@@ -5,7 +5,7 @@ then
     echo "usage $0 [distance to plane]"
 else
     echo $#
-    python3 detect.py &&
-    ./p 1280 720 $1 &&
+    python3 detect.py
+    ./p 1280 720 $1
     python3 IO_wykresy.py
 fi

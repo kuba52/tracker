@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
             inF >> str;
             if (str == "dupa")
             {
+                outF<<"dupa\n";
                 outF.close();
                 inF.close();
                 return 0;
