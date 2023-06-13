@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 import time as t
+import csv
 
 # wczytywanie pliku konfiguracyjnego
 # 0 - brak wykresu, 1 - jest zapisywany, 2 - jest na żywo
@@ -15,25 +16,29 @@ def config():
 
 # Wczytywanie danych
 def updater(last_file_position):
-    f = open("data.txt", 'r')
+    f = open("data2.txt", 'r')
     f.seek(last_file_position)
     data = f.readlines()
     last_file_position = f.tell()
+    end = False
     #print(len(data))
     if (len(data) > 0 and data[0] == '\n'):
         data = data[1:len(data)]
-    new_x = np.empty(len(data), dtype=float) # położenia w osi x
-    new_y = np.empty(len(data), dtype=float) # położenia w osi y
+    if (len(data) > 0 and data[len(data) - 1] == "dupa"):
+        end = True
+        data = data[0: len(data) - 1]
+    new_x = np.empty(len(data), dtype=float) # położenia w osi x w mm
+    new_y = np.empty(len(data), dtype=float) # położenia w osi y w mm
     new_time = np.empty(len(data), dtype=float)
    
     for i in range(0, len(data)):
         s = data[i]
         coordinates = s.split() # x y t
-        new_x[i] = float(coordinates[0])
-        new_y[i] = float(coordinates[1])
+        new_x[i] = float(coordinates[0])/10
+        new_y[i] = float(coordinates[1])/10
         new_time[i] = float(coordinates[2])
     f.close()
-    return last_file_position, new_x, new_y, new_time
+    return last_file_position, new_x, new_y, new_time, end
 
 # kalkulacja prędkości
 def calculate_velocities(x, y, time, last_processed_index):
@@ -79,8 +84,8 @@ def calculate_accelerations(v_x, v_y, v, last_processed_index):
 # tablica z informacjami konfiguracyjnymi  
 plot = config() #
 
-x = np.empty(0, dtype=float) # położenia w osi x
-y = np.empty(0, dtype=float) # położenia w osi y
+x = np.empty(0, dtype=float) # położenia w osi x w cm
+y = np.empty(0, dtype=float) # położenia w osi y w cm
 time = np.empty(0, dtype=float)
 last_file_position = 0
 
@@ -103,22 +108,16 @@ a_const = True
 # min and max values in an array may differ by less than ER and still will be considered constant
 ER = 0.0001
 
-
+end = False
 sleep_time = 3
-time_until_stop = 15 # czas po którym program się zakończy, jeśli nie wykryje nowych danych
-time_since_last_update = 0
 
-while(time_since_last_update < time_until_stop):   
-    time_since_last_update += sleep_time
+while(not end):   
     
     # Aktualizacja współrzędnych czasoprzestrzennych
-    last_file_position, new_x, new_y, new_time = updater(last_file_position)
+    last_file_position, new_x, new_y, new_time, end = updater(last_file_position)
     x = np.concatenate((x, new_x))
     y = np.concatenate((y, new_y))
     time = np.concatenate((time, new_time))
-    
-    if (new_x.size > 0):
-        time_since_last_update = 0
     
     # Aktualizacja wartości prędkości
     new_last_processed_index, new_vx, new_vy, new_v = calculate_velocities(x, y, time, last_processed_index)
@@ -156,12 +155,11 @@ while(time_since_last_update < time_until_stop):
         plt.title('Wykres położenia (oś x) od czasu')
         plt.plot(time, x,'go', markersize = '5')
         plt.xlabel("t [s]")
-        plt.ylabel("x [m]")
+        plt.ylabel("x [cm]")
         plt.grid(True)
         plt.legend()
         plt.savefig("x(t).pdf")
         if (plot[0] == 2):
-            print("jestem x\n")
             fig.show()
             plt.pause(0.1)
         if (plot[0] == 1):
@@ -174,12 +172,11 @@ while(time_since_last_update < time_until_stop):
         plt.title('Wykres położenia (oś y) od czasu')
         plt.plot(time, y,'go', markersize = '5')
         plt.xlabel("t [s]")
-        plt.ylabel("y [m]")
+        plt.ylabel("y [cm]")
         plt.grid(True)
         plt.legend()
         plt.savefig("y(t).pdf")
         if (plot[1] == 2):
-            print("jestem y\n")
             fig.show()
             plt.pause(0.1)
         if (plot[1] == 1):
@@ -191,13 +188,12 @@ while(time_since_last_update < time_until_stop):
         fig = plt.figure("y[x]", layout="constrained")
         plt.title('Wykres położenia w osi y od x')
         plt.plot(x, y,'ro', markersize = '5')
-        plt.xlabel("x [m]")
-        plt.ylabel("y [m]")
+        plt.xlabel("x [cm]")
+        plt.ylabel("y [cm]")
         plt.grid(True)
         plt.legend()
         plt.savefig("y(x).pdf")
         if (plot[2] == 2):
-            print("jestem yx\n")
             fig.show()
             plt.pause(0.1)
         if (plot[2] == 1):
@@ -209,7 +205,7 @@ while(time_since_last_update < time_until_stop):
         plt.title('Wykres prędkości w osi x od czasu')
         plt.plot(time[1:], v_x, 'bo', markersize = '5')
         plt.xlabel("t [s]")
-        plt.ylabel(r'$v_x$ [$\frac{m}{s}$]')
+        plt.ylabel(r'$v_x$ [$\frac{cm}{s}$]')
         plt.grid(True)
         plt.legend()
         if (vx_const):
@@ -233,7 +229,7 @@ while(time_since_last_update < time_until_stop):
         plt.title('Wykres prędkości w osi y od czasu')
         plt.plot(time[1:], v_y, 'bo', markersize = '5')
         plt.xlabel("t [s]")
-        plt.ylabel(r'$v_y$ [$\frac{m}{s}$]')
+        plt.ylabel(r'$v_y$ [$\frac{cm}{s}$]')
         plt.grid(True)
         plt.legend()
         if (vy_const):
@@ -256,7 +252,7 @@ while(time_since_last_update < time_until_stop):
         plt.title('Wykres prędkości od czasu')
         plt.plot(time[1:], v, 'bo', markersize = '5')
         plt.xlabel("t [s]")
-        plt.ylabel(r'v [$\frac{m}{s}$]')
+        plt.ylabel(r'v [$\frac{cm}{s}$]')
         plt.grid(True)
         plt.legend()
         if (vy_const and vx_const):
@@ -279,7 +275,7 @@ while(time_since_last_update < time_until_stop):
         plt.title('Wykres przyspieszenia w osi x od czasu')
         plt.plot(time[2:], a_x, 'mo', markersize = '5')
         plt.xlabel("t [s]")
-        plt.ylabel(r'$a_x$ [$\frac{m}{s^2}$]')
+        plt.ylabel(r'$a_x$ [$\frac{cm}{s^2}$]')
         plt.grid(True)
         plt.legend()
         if (ax_const):
@@ -302,7 +298,7 @@ while(time_since_last_update < time_until_stop):
         plt.title('Wykres przyspieszenia w osi y od czasu')
         plt.plot(time[2:], a_y, 'mo', markersize = '5')
         plt.xlabel("t [s]")
-        plt.ylabel(r'$a_y$ [$\frac{m}{s^2}$]')
+        plt.ylabel(r'$a_y$ [$\frac{cm}{s^2}$]')
         plt.grid(True)
         plt.legend()
         if (ax_const):
@@ -325,7 +321,7 @@ while(time_since_last_update < time_until_stop):
         plt.title('Wykres wartości przyspieszenia od czasu')
         plt.plot(time[2:], a, 'mo', markersize = '5')
         plt.xlabel("t [s]")
-        plt.ylabel(r'$a$ [$\frac{m}{s^2}$]')
+        plt.ylabel(r'$a$ [$\frac{cm}{s^2}$]')
         plt.grid(True)
         plt.legend()
         if (ax_const):
@@ -343,3 +339,53 @@ while(time_since_last_update < time_until_stop):
             plt.close()
     #plt.show()
     t.sleep(sleep_time)
+
+# zapisz dane o położeniach
+header = ['x(t)', 'y(t)', 't']
+with open('xy.csv', 'w', encoding='UTF8') as f:
+    writer = csv.writer(f)
+
+    # write the header
+    writer.writerow(header)
+    
+    for i in range (0, x.size):
+        row = np.empty(3, dtype=float)
+        row[0] = x[i]
+        row[1] = y[i]
+        row[2] = time[i]
+        # write the data
+        writer.writerow(row)
+
+#zapisz dane o prędkościach    
+header = ['v_x(t)', 'v_y(t)', 'v(t)', 't']
+with open('v.csv', 'w', encoding='UTF8') as f:
+    writer = csv.writer(f)
+
+    # write the header
+    writer.writerow(header)
+    
+    for i in range (0, v.size):
+        row = np.empty(4, dtype=float)
+        row[0] = v_x[i]
+        row[1] = v_y[i]
+        row[2] = v[i]
+        row[3] = time[i + 1]
+        # write the data
+        writer.writerow(row)
+
+#zapisz dane o przyspieszeniach         
+header = ['a_x(t)', 'a_y(t)', 'a(t)', 't']
+with open('a.csv', 'w', encoding='UTF8') as f:
+    writer = csv.writer(f)
+
+    # write the header
+    writer.writerow(header)
+    
+    for i in range (0, a.size):
+        row = np.empty(4, dtype=float)
+        row[0] = a_x[i]
+        row[1] = a_y[i]
+        row[2] = a[i]
+        row[3] = time[i + 2]
+        # write the data
+        writer.writerow(row)
