@@ -42,6 +42,9 @@ def updater(last_file_position):
 
 # kalkulacja prędkości
 def calculate_velocities(x, y, time, last_processed_index):
+    if (len(x) == 0):
+        e = np. empty(0, dtype = float)
+        return last_processed_index, e, e, e
     if (last_processed_index == -1):
         v_x = np.empty(x.size - 1, dtype=float)
         v_y = np.empty(y.size - 1, dtype=float)
@@ -69,6 +72,9 @@ def calculate_velocities(x, y, time, last_processed_index):
 
 # kalkulacja przyspieszeń
 def calculate_accelerations(v_x, v_y, v, last_processed_index):
+    if (len(v) == 0):
+        e = np. empty(0, dtype = float)
+        return e, e, e
     if (last_processed_index < 0):
         last_processed_index = 0
     a_x = np.empty(v_x.size - 1 - last_processed_index, dtype=float)
